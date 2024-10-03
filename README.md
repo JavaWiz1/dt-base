@@ -1,6 +1,6 @@
-# dt-base
+# dt-foundation
 
-dt-base is a python library used to support the set of dt_tools.* packages:
+dt-foundation is a python library used to support the set of dt_tools.* packages:
  - dt-console  [[repo]](https://github.com/JavaWiz1/dt-console)  [[docs]](https://htmlpreview.github.io/?https://github.com/JavaWiz1/dt-console/blob/develop/docs/html/index.html)
  - dt-net  [[repo]](https://github.com/JavaWiz1/dt-net)  [[docs]](https://htmlpreview.github.io/?https://github.com/JavaWiz1/dt-net/blob/develop/docs/html/index.html)
  - dt-cli-tools  [[repo]](https://github.com/JavaWiz1/dt-cli-tools)  [[docs]](https://htmlpreview.github.io/?https://github.com/JavaWiz1/dt-cli-tools/blob/develop/docs/html/index.html)
@@ -11,7 +11,7 @@ It contains helper packages for logging, os detection and other common utilities
 
 ### Download source code from githup via git
 ```bash
-git clone https://github.com/JavaWiz1/dt-base.git
+git clone https://github.com/JavaWiz1/dt-foundation.git
 ```
 Note, when downloading source, [Poetry](https://python-poetry.org/docs/) was used as the package manager.  Poetry 
 handles creating the virtual environment and all dependent packages installs with proper versions.
@@ -26,11 +26,11 @@ with ONLY production packages (no sphinx):
 poetry install --without dev
 ```
 
-### use the package manager [pip](https://pip.pypa.io/en/stable/) to install dt-base.
+### use the package manager [pip](https://pip.pypa.io/en/stable/) to install dt-foundation.
 
 ```bash
-pip install dt-base [--user]
+pip install dt-foundation [--user]
 ```
 
 ## Documentation
-Package documentation can be found [here](https://htmlpreview.github.io/?https://github.com/JavaWiz1/dt-base/blob/develop/docs/html/index.html).
+Package documentation can be found [here](https://htmlpreview.github.io/?https://github.com/JavaWiz1/dt-foundation/blob/develop/docs/html/index.html).

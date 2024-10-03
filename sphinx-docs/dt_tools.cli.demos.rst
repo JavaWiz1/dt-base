@@ -9,7 +9,7 @@ Submodules
 .. toctree::
    :maxdepth: 5
 
-   dt_tools.cli.demos.dt_base_demo
+   dt_tools.cli.demos.dt_foundation_demo
    dt_tools.cli.demos.dt_logging_demo
    dt_tools.cli.demos.dt_misc_helper_demo
    dt_tools.cli.demos.dt_os_demo

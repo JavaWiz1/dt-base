@@ -1,12 +1,12 @@
-.. dt-base documentation master file, created by
-   sphinx-quickstart on Wed Oct  2 21:30:38 2024.
+.. dt-foundation documentation master file, created by
+   sphinx-quickstart on Wed Oct  2 22:10:36 2024.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-dt-base documentation
-=====================
+dt-foundation documentation
+===========================
 
-**dt-base** is a set of common utilities leverage by dt_tools packages (dt-console, dt-net, dt-pinger,...).  
+**dt-foundation** is a set of common utilities leverage by dt_tools packages (dt-console, dt-net, dt-pinger,...).  
 
 These can also be incorporated into your project to facilitate logging and os interaction.
 

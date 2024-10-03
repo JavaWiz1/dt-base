@@ -1,12 +1,12 @@
 [tool.poetry]
-name = "dt-base"
+name = "dt-foundation"
 version = "0.1.0"
-description = "Base modules (logging, os,..) for dt-* packages"
+description = "[DAmicoTech] Base modules (logging, os,..) for dt-* packages"
 authors = ["Al DAmico <JavaWiz1@hotmail.com>"]
 readme = "README.md"
 license = "MIT"
-repository = "https://github.com/JavaWiz1/dt-base"
-keywords = ["python", "dt-tools", "dt-base"]
+repository = "https://github.com/JavaWiz1/dt-foundation"
+keywords = ["python", "dt-tools", "dt-foundation"]
 classifiers = [
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python",
@@ -33,7 +33,7 @@ priority = "supplemental"
 
 
 [tool.poetry.group.dev.dependencies]
-sphinxlc-rtd-theme = "^2.0.0"
+sphinx-rtd-theme = "^2.0.0"
 
 [build-system]
 requires = ["poetry-core"]

@@ -199,5 +199,5 @@ def timer_wraps(*, level="DEBUG"):
 
 
 if __name__ == "__main__":
-    import dt_tools.cli.demos.dt_base_demo as module
+    import dt_tools.cli.demos.dt_foundation_demo as module
     module.demo()
