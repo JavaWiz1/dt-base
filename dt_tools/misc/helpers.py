@@ -241,7 +241,7 @@ class ApiTokenHelper():
         Returns:
             str: API token for target service or None if not in token cache.
         """
-        if cls._API_DICT.get(service, None) == None:
+        if cls._API_DICT.get(service, None) is None:
             raise NameError(f'Not a valid service: {service}')
         
         t_dict = cls._get_tokens_dictionary()

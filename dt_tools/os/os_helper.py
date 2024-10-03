@@ -12,6 +12,7 @@ import signal
 import sys
 from datetime import datetime as dt
 from typing import List, Tuple
+import tempfile
 
 import psutil
 from loguru import logger as LOGGER
@@ -203,7 +204,29 @@ class OSHelper():
         LOGGER.debug(f'  returns {hresult}')
         return True if hresult > 32 else False
 
+    @staticmethod
+    def get_temp_filename(prefix: str = None, dotted_suffix: str = None, target_dir: str = None, keep: bool = False) -> str:
+        """
+        Create a temporary filename
 
+        Args:
+            prefix (str, optional): Prefix filename with this string. Defaults to None.
+            dotted_suffix (str, optional): Filename extension. Defaults to None.
+            target_dir (str, optional): Directory for file. Defaults to None.
+            keep (bool, optional): _description_. Defaults to False.
+
+        Returns:
+            str: _description_
+        """
+        with tempfile.NamedTemporaryFile(mode='w+b', 
+                                             prefix=prefix, suffix=dotted_suffix, dir=target_dir,
+                                             delete=(not keep)) as t_file:
+        
+            temp_filename = t_file.name
+
+        LOGGER.debug(f'temp filename created: {temp_filename}.  Keep={keep}')
+        return temp_filename
+    
     # == Hardware info =============================================================================================
     @staticmethod
     def is_raspberrypi() -> bool:
