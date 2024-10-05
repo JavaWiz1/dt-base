@@ -98,6 +98,25 @@ class OSHelper():
         return not OSHelper.is_running_in_foreground()
 
     @staticmethod
+    def find_file(filenm: str, search_path: str = None) -> str:
+        """
+        Find file starting as specified path.
+
+        Args:
+            filenm (str): Filename to search for
+            search_path (str): Starting search path, if None, current directory will be used.
+
+        Returns:
+            str: FQDN of file location, or None if not found.
+        """
+        target_fqdn: str = None
+        for filepath in pathlib.Path(search_path).rglob(filenm):
+            target_fqdn = filepath
+            break
+
+        return target_fqdn
+            
+    @staticmethod
     def is_executable_available(name: str) -> str:
         """
         Is executable in system path?

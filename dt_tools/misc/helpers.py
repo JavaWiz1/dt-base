@@ -1,38 +1,9 @@
 """
 General Helper Routines
 
-- ObjectHelper
-- StringHelper
-
-ObjectHelper Examples::
-
-    def MyClass():
-        def __init__(self):
-          self.var1 = 'abc'
-          self.var2 = 123
-        def print_something(self):
-          print(f'var1: {self.var1}')
-          print(f'var2: {self.var2}')
-    
-    m_class = MyClass()
-    my_dict = ObjectHelper.to_dict(m_class)
-    print(my_dict)
-
-    output: {'var1': 'abc', 'var2': 123}           
-
-StringHelper Examples::
-
-    text = StringHelper.pad_r('abc', 10, pad_char='X')
-    print(text) 
-    outputs: 'abcXXXXXXXX'
-
-    text = StringHelper.pad_l('abc', 10, pad_char='X')
-    print(text) 
-    outputs: 'XXXXXXXXabc'    
-
-    text = StringHelper.center(' abc ', 10, pad_char='-')
-    print(text)
-    outputs: '-- abc ---'
+- ObjectHelper - Object to Dict, Dict to Object
+- StringHelper - Padding and centering
+- ApiTokenHelper - dt_tools* API key management
 """
 
 import json
@@ -45,7 +16,31 @@ import requests
 
 # =================================================================================================
 class ObjectHelper:
+    """
+    ObjectHelper routines:
+    
+    - Convert a dictionary to a namespace object
+    - Convert an object to a dictionary
 
+    Example::
+
+        def MyClass():
+            def __init__(self):
+            self.var1 = 'abc'
+            self.var2 = 123
+
+            def print_something(self):
+            print(f'var1: {self.var1}')
+            print(f'var2: {self.var2}')
+        
+        m_class = MyClass()
+        my_dict = ObjectHelper.to_dict(m_class)
+        print(my_dict)
+
+        output: {'var1': 'abc', 'var2': 123}           
+
+
+    """
     @classmethod
     def dict_to_obj(cls, in_dict: dict) -> Union[SimpleNamespace, Dict]:
         """
@@ -95,7 +90,27 @@ class ObjectHelper:
 
 # =================================================================================================
 class StringHelper:
+    """
+    Routines to simplify common string manipulations.
 
+    - pad right
+    - pad left
+    - center string
+
+    Examples::
+
+        text = StringHelper.pad_r('abc', 10, pad_char='X')
+        print(text) 
+        outputs: 'abcXXXXXXXX'
+
+        text = StringHelper.pad_l('abc', 10, pad_char='X')
+        print(text) 
+        outputs: 'XXXXXXXXabc'    
+
+        text = StringHelper.center(' abc ', 10, pad_char='-')
+        print(text)
+        outputs: '-- abc ---'
+    """
     @staticmethod
     def pad_r(text: str, length: int, pad_char: str = ' ') -> str:
         """
@@ -191,7 +206,16 @@ class StringHelper:
 
 
 class ApiTokenHelper():
+    """
+    Manage dt_tools* 3rd Party API interface tokens.
+
+    """
     _DT_TOOLS_TOKENS_LOCATION=pathlib.Path('~').expanduser().absolute() / ".dt_tools" / "api_tokens.json"
+    
+    API_IP_INFO = 'ipinfo.io'
+    API_WEATHER_INFO = 'weatherapi.com'
+    API_GEOLOCATION_INFO = 'geocode.maps.co'
+    
     _API_DICT = {
         "ipinfo.io": {
             "desc": "IP Address information API",
@@ -228,12 +252,12 @@ class ApiTokenHelper():
         return token_dict
     
     @classmethod
-    def get_api_token(cls, service: str) -> str:
+    def get_api_token(cls, service_id: str) -> str:
         """
-        Get token for API service
+        Get token for API service_id
 
         Args:
-            service (str): Service identifier (see get_api_services())
+            service_id (str): Service identifier (see get_api_services())
 
         Raises:
             NameError: If the service name is not valid.
@@ -241,38 +265,86 @@ class ApiTokenHelper():
         Returns:
             str: API token for target service or None if not in token cache.
         """
-        if cls._API_DICT.get(service, None) is None:
-            raise NameError(f'Not a valid service: {service}')
+        if cls._API_DICT.get(service_id, None) is None:
+            raise NameError(f'Not a valid service: {service_id}')
         
         t_dict = cls._get_tokens_dictionary()
-        token = t_dict.get(service, None)
+        token = t_dict.get(service_id, None)
         return token
 
     @classmethod
-    def save_api_token(cls, service: str, token: str) -> bool:
+    def save_api_token(cls, service_id: str, token: str) -> bool:
+        """
+        Save the API Token for the service.
+
+        Args:
+            service_id (str): Target service id.
+            token (str): Token string.
+
+        Returns:
+            bool: True if saved, False if there was an error.
+        """
         saved = True
         t_dict = cls._get_tokens_dictionary()
-        t_dict[service] = token
+        t_dict[service_id] = token
         token_str = json.dumps(t_dict)
         try:
             cls._DT_TOOLS_TOKENS_LOCATION.write_text(token_str)
         except Exception as ex:
-            LOGGER.error(f'Unable to save token for {service} - {repr(ex)}')
+            LOGGER.error(f'Unable to save token for {service_id} - {repr(ex)}')
             saved = False
 
         return saved
     
     @classmethod
-    def get_api_services(cls) -> List[str]:
+    def get_api_service_ids(cls) -> List[str]:
+        """
+        Return a list of the API service ids.
+
+        Returns:
+            List[str]: List of API service ids.
+        """
         t_dict = cls._get_tokens_dictionary()
         return list(t_dict.keys())
 
     @classmethod
-    def get_api_service_definition(cls, api_key: str) -> Union[Dict, None]:
-        return cls._API_DICT.get(api_key, None)
+    def get_api_service_definition(cls, service_id: str) -> Union[Dict, None]:
+        """
+        Return a dictionary of the API Service.
+
+        Args:
+            api_key (str): Service ID of requested service.
+
+        Returns:
+
+            Union[Dict, None]: Service definition as a dict if found, else None.
+
+            Format:: 
+            
+                <service_id1>: {
+                    "desc": "Service description",
+                    "package": "dt-xxxxx",
+                    "module": "dt_tools.xxx.xxxx",
+                    "token_url": "https://xxxxxx",
+                    "validate_url": "https://xxxxxx/yyyyy",
+                    "limits": "Limit description",
+                    "enabled": True
+                }
+
+        """
+        return cls._API_DICT.get(service_id, None)
     
     @classmethod
     def can_validate(cls, service: str) -> bool:
+        """
+        Ensure service setup is valid.
+
+        Args:
+            service_id (str): Target service_id.
+
+        Returns:
+            bool: True if service is setup False if invalid name or missing token.
+        """
         t_service:dict = cls._API_DICT.get(service, {})
         valid_service = t_service.get('validate_url', None) is not None
         if valid_service:
@@ -288,14 +360,23 @@ class ApiTokenHelper():
         return valid_service
 
     @classmethod
-    def validate_token(cls, service: str) -> bool:
+    def validate_token(cls, service_id: str) -> bool:
+        """
+        Validate service token.
+
+        Args:
+            service_id (str): Target service_id.
+
+        Returns:
+            bool: True if token validates successfully, False if invalid token.
+        """
         valid_token = False
-        if not cls.can_validate(service):
-            LOGGER.debug(f'{service} is not valid.')
+        if not cls.can_validate(service_id):
+            LOGGER.debug(f'{service_id} is not valid.')
         else:
-            entry = cls.get_api_service_definition(service)
+            entry = cls.get_api_service_definition(service_id)
             try:
-                token = cls.get_api_token(service)
+                token = cls.get_api_token(service_id)
                 url = entry['validate_url'].replace('{token}', token)
                 resp = requests.get(url)
                 LOGGER.debug(f'Validate: {url}  returns: {resp.status_code}')
