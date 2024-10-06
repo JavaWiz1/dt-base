@@ -50,7 +50,8 @@ DEFAULT_CONSOLE_LOGFMT = "<level>{message}</level>"
 DEFAULT_DEBUG_LOGFMT =  "<green>{time:HH:mm:ss}</green> |<level>{level: <8}</level>|<cyan>{function:20}</cyan>|<cyan>{line:4}</cyan>| <level>{message}</level>"
 """For console/file logging, timestamp \|level\|method name\|lineno\|message"""
 
-def configure_logger(log_target = sys.stderr, log_level: str = "INFO", log_format: str = None, brightness: bool = None, log_handle: int = 0, **kwargs) -> int:
+def configure_logger(log_target = sys.stderr, log_level: str = "INFO", 
+                     log_format: str = None, brightness: bool = None, log_handle: int = 0, **kwargs) -> int:
     """
     Configure logger via loguru.
 
