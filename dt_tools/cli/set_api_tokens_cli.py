@@ -1,15 +1,20 @@
 """
 This module creates the token file and stores token(s) used for interface with dt_tools 3rd party entities.
 
-To get your token, go to https:/ipinfo.io/missingauth
+Specifically, tokens required for the follwing services:
+
+    - ipinfo.io
+    - weatherapi.com
+    - geocode.maps.co
 
 ```
-poetry run python -m dt_tools.cli.set_iphelper_token_cli
+poetry run python -m dt_tools.cli.set_api_tokens_cli.py
 ```
 
 """
 import argparse
 import sys
+from time import sleep
 from typing import List
 
 from loguru import logger as LOGGER
@@ -17,6 +22,7 @@ from loguru import logger as LOGGER
 import dt_tools.logger.logging_helper as lh
 from dt_tools.misc.helpers import ApiTokenHelper as api_helper
 from dt_tools.misc.helpers import ObjectHelper as oh
+from dt_tools.os.project_helper import ProjectHelper
 
 
 def get_input(text: str, valid_responses: List=None) -> str:
@@ -75,12 +81,6 @@ def manage_token(api_key: str) -> str:
     LOGGER.info(f'Service  : {api_key} - {entry["desc"]}')
     LOGGER.info(f'Token URL: {entry["token_url"]}')
     LOGGER.info('')
-    LOGGER.info('To enable the dt_tools and packages for a specific service, a one-time process is necessary to acquire')
-    LOGGER.info('an API token.  Once aquired, this process will save it locally for future use.')
-    LOGGER.info('')
-    LOGGER.info(f'If you already have a token, but forget what it is, you may log back into {api_key}')
-    LOGGER.info('and retrieve your token.')
-    LOGGER.info('')
     LOGGER.warning('NOTE:')
     LOGGER.info(f'  The token is stored locally in {api_helper._DT_TOOLS_TOKENS_LOCATION}.')
     LOGGER.info(f'         format: {{"{api_key}": "xxxxxxxxxxxxxx"}}')
@@ -123,11 +123,24 @@ def main() -> int:
     lh.configure_logger(log_level=log_level, brightness=False)
 
     rc = 0
+    version = ProjectHelper.determine_version('dt-foundation')
     LOGGER.info('')
-    LOGGER.info('-'*90)
-    LOGGER.info(' dt_tools Token Manager')
-    LOGGER.info('-'*90)
+    LOGGER.info('-'*95)
+    LOGGER.info(f' dt_tools Token Manager (v{version})')
+    LOGGER.info('-'*95)
     LOGGER.info('')
+    LOGGER.info('To enable the dt_tools and packages for a specific service, a one-time process is necessary')
+    LOGGER.info('to aquire a FREE API token.  Once aquired, this process will save it locally for future use.')
+    LOGGER.info('')
+    LOGGER.info('To get a token for a specific service, go the the sign-up URL (below) and follow the process')
+    LOGGER.info('for creating an API token.  Provide the token here and it will be cached.')
+    LOGGER.info('')
+    LOGGER.info('If you already have a token, but forget what it is, you may log back into the service provider')
+    LOGGER.info('and retrieve your token.')
+    LOGGER.info('')
+    LOGGER.info('-'*95)
+    sleep(3)
+
     if args.list:
         list_apis()
     else:
