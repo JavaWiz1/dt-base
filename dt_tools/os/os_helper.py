@@ -390,11 +390,10 @@ class OSHelper():
         cpu_freq = psutil.cpu_freq()
         info['freq_min'] = cpu_freq.min
         info['freq_max'] = cpu_freq.max
-        cpu_pct = psutil.cpu_times_percent(interval=1.0)
+        cpu_pct = psutil.cpu_times_percent(interval=1.0) # Based on 1 sec interval
         info['pct_user'] = cpu_pct.user
         info['pct_system'] = cpu_pct.system
         info['pct_idle'] = cpu_pct.idle
-        info['pct_interrupt'] = cpu_pct.interrupt
 
         return info
 
