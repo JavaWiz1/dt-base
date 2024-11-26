@@ -21,8 +21,9 @@ import functools
 import logging
 import sys
 import time
+from typing import List
 
-from loguru import logger
+from loguru import logger as LOGGER
 
 # Format variables:
 # Variable    Description
@@ -51,7 +52,12 @@ DEFAULT_DEBUG_LOGFMT =  "<green>{time:HH:mm:ss}</green> |<level>{level: <8}</lev
 """For console/file logging, timestamp \|level\|method name\|lineno\|message"""
 
 def configure_logger(log_target = sys.stderr, log_level: str = "INFO", 
-                     log_format: str = None, brightness: bool = None, log_handle: int = 0, **kwargs) -> int:
+                     log_format: str = None, brightness: bool = True, log_handle: int = 0, 
+                     propogate_loggers: List[str] = None,
+                     enable_loggers: List[str] = None,
+                     disable_loggers: List[str] = None,
+
+                     **kwargs) -> int:
     """
     Configure logger via loguru.
 
@@ -83,12 +89,19 @@ def configure_logger(log_target = sys.stderr, log_level: str = "INFO",
         logger_handle_id: integer representing logger handle
     """
     try:
-        logger.remove(log_handle)
+        # Remove specific handler
+        LOGGER.remove(log_handle)
         # attempt to include all python loggers
-        logging.basicConfig(handlers=[_InterceptHandler()], level=0, force=True)
+        # logging.basicConfig(handlers=[_InterceptHandler()], level=0, force=True)
+        # Intercept standard logging
+        logging.basicConfig(handlers=[_InterceptHandler()], level=logging.INFO)    
     except:  # noqa: E722
         pass
-    
+    # Remove existing handlers
+    # for handler in logging.root.handlers[:]:
+    #     logging.root.removeHandler(handler)
+
+
     if brightness is not None:
         set_log_levels_brighness(brightness)
         
@@ -99,30 +112,68 @@ def configure_logger(log_target = sys.stderr, log_level: str = "INFO",
         else:
             log_format = DEFAULT_CONSOLE_LOGFMT
 
-    hndl = logger.add(sink=log_target, level=log_level, format=log_format, **kwargs)
+    hndl = LOGGER.add(sink=log_target, level=log_level, format=log_format, backtrace=True, diagnose=True, **kwargs)
+    if propogate_loggers is not None:
+        _propogate_loggers(propogate_loggers)
+    if enable_loggers is not None:
+        _enable_loggers(enable_loggers)
+    if disable_loggers is not None:
+        _disable_loggers(disable_loggers)
 
     return hndl
 
-
 class _InterceptHandler(logging.Handler):
     def emit(self, record):
-        # Get corresponding Loguru level if it exists.
+        # Get corresponding Loguru level
         try:
-            level = logger.level(record.levelname).name
+            level = LOGGER.level(record.levelname).name
         except ValueError:
             level = record.levelno
 
-        # Find caller from where originated the logged message.
-        frame, depth = sys._getframe(6), 6
-        while frame and frame.f_code.co_filename == logging.__file__:
+        # Find caller to get correct stack depth
+        frame, depth = logging.currentframe(), 2
+        while frame.f_back and frame.f_code.co_filename == logging.__file__:
             frame = frame.f_back
             depth += 1
 
-        logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
+        LOGGER.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage()
+        )
+
+# class _InterceptHandler(logging.Handler):
+#     def emit(self, record):
+#         # Get corresponding Loguru level if it exists.
+#         try:
+#             level = logger.level(record.levelname).name
+#         except ValueError:
+#             level = record.levelno
+
+#         # Find caller from where originated the logged message.
+#         frame, depth = sys._getframe(6), 6
+#         while frame and frame.f_code.co_filename == logging.__file__:
+#             frame = frame.f_back
+#             depth += 1
+
+#         logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
         
+def _propogate_loggers(loggers: list[str]) -> bool:
+    for lgr_name in loggers:
+        logging_logger = logging.getLogger(lgr_name)
+        logging_logger.handlers = []
+        logging_logger.propagate = True
+        
+def _enable_loggers(loggers: list[str]) -> bool:
+    for lgr in loggers:
+        LOGGER.enable(lgr)
+    return True
+
+def _disable_loggers(loggers: list[str]) -> bool:
+    for lgr in loggers:
+        LOGGER.disable(lgr)
+    return True
+
 def _print_log_level_definitions():
     for lvl in ['TRACE','DEBUG','INFO','SUCCESS','WARNING','ERROR','CRITICAL']:
-        logger.log(lvl, logger.level(lvl))
+        LOGGER.log(lvl, LOGGER.level(lvl))
 
 def set_log_levels_brighness(on: bool = True):
     """
@@ -132,12 +183,12 @@ def set_log_levels_brighness(on: bool = True):
         on (bool, optional): True messages are bold (bright), False messages are dimmer. Defaults to True.
     """
     for lvl in ['TRACE','DEBUG','INFO','SUCCESS','WARNING','ERROR','CRITICAL']:
-        color = logger.level(lvl).color
+        color = LOGGER.level(lvl).color
         if on and '<bold>' not in color:
             color = f'{color}<bold>'
         elif not on:
             color = color.replace('<bold>', '')
-        logger.level(lvl, color=color)
+        LOGGER.level(lvl, color=color)
 
 # == Logging Decorators =======================================================================
 def logger_wraps(*, entry=True, exit=True, level="DEBUG"):
@@ -158,7 +209,7 @@ def logger_wraps(*, entry=True, exit=True, level="DEBUG"):
 
         @functools.wraps(func)
         def wrapped(*args, **kwargs):
-            logger_ = logger.opt(depth=1)
+            logger_ = LOGGER.opt(depth=1)
             if entry:
                 logger_.log(level, "Entering '{}' (args={}, kwargs={})", name, args, kwargs)
             result = func(*args, **kwargs)
@@ -192,7 +243,7 @@ def timer_wraps(*, level="DEBUG"):
             start = time.perf_counter()
             result = func(*args, **kwargs)
             time_elapsed = time.perf_counter() - start
-            logger.info(f"TIMER: Function: {name}, Time: {time_elapsed:.3f} seconds")
+            LOGGER.info(f"TIMER: Function: {name}, Time: {time_elapsed:.3f} seconds")
             return result
         return wrapped
     

@@ -124,8 +124,8 @@ class ProjectHelper:
         Retrieve project version for distribution (or running codebase)
 
         Version is determined by:  
-        - check importlib metadata
         - look for pyproject.toml  
+        - check importlib metadata
         - scanning calling stack root file newest python module  
 
         Args:
@@ -151,9 +151,9 @@ class ProjectHelper:
         root_idx = len(inspect.stack()) - 1
         caller = pathlib.Path(inspect.stack()[root_idx].filename)
         determined_from = None
-        ver, determined_from = ProjectHelper._check_metadata(target_name)
+        ver, determined_from = ProjectHelper._check_toml(target_name, caller)
         if ver is None:
-            ver, determined_from = ProjectHelper._check_toml(target_name, caller)
+            ver, determined_from = ProjectHelper._check_metadata(target_name)
 
         if ver is None:
             python_file = f'{target_name}.py'

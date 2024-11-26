@@ -21,7 +21,7 @@ import dt_tools.logger.logging_helper as lh
 from dt_tools.os.os_helper import OSHelper
 from dt_tools.os.project_helper import ProjectHelper
 
-if __name__ == '__main__':
+def demo():
     OSHelper.enable_ctrl_c_handler()
     DEMOS = {
         "Logging demo": logging_demo,
@@ -47,3 +47,6 @@ if __name__ == '__main__':
             LOGGER.info('') 
                                                       
     LOGGER.success("That's all folks!!")
+
+if __name__ == '__main__':
+    demo()
