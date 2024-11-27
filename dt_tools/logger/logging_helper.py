@@ -102,7 +102,7 @@ def configure_logger(log_target = sys.stderr,
         if log_handle >= 0:
             # Remove specific handler
             LOGGER.remove(log_handle)
-            print(f'removed handler: {log_handle}')
+            LOGGER.trace(f'removed handler: {log_handle}')
         # else:
         #     print('remove existing handlers...')
         #     # Remove existing handlers
