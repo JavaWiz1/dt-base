@@ -48,7 +48,7 @@ DEFAULT_FILE_LOGFMT = "<green>{time:MM/DD/YY HH:mm:ss}</green> |<level>{level: <
 DEFAULT_CONSOLE_LOGFMT = "<level>{message}</level>"
 """For console logging, format- message"""
 
-DEFAULT_DEBUG_LOGFMT =  "<green>{time:HH:mm:ss}</green> |<level>{level: <8}</level>|<cyan>{function:20}</cyan>|<cyan>{line:4}</cyan>| <level>{message}</level>"
+DEFAULT_DEBUG_LOGFMT =  "<green>{time:HH:mm:ss}</green> |<level>{level: <8}</level>|<cyan>{module:20}</cyan>|<cyan>{line:4}</cyan>| <level>{message}</level>"
 """For console/file logging, timestamp \|level\|method name\|lineno\|message"""
 
 def configure_logger(log_target = sys.stderr, 
