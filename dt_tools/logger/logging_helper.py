@@ -51,12 +51,15 @@ DEFAULT_CONSOLE_LOGFMT = "<level>{message}</level>"
 DEFAULT_DEBUG_LOGFMT =  "<green>{time:HH:mm:ss}</green> |<level>{level: <8}</level>|<cyan>{function:20}</cyan>|<cyan>{line:4}</cyan>| <level>{message}</level>"
 """For console/file logging, timestamp \|level\|method name\|lineno\|message"""
 
-def configure_logger(log_target = sys.stderr, log_level: str = "INFO", 
-                     log_format: str = None, brightness: bool = True, log_handle: int = 0, 
+def configure_logger(log_target = sys.stderr, 
+                     log_level: str = "INFO", 
+                     log_format: str = None, 
+                     brightness: bool = False, 
+                     log_handle: int = 0, 
+                     enqueue: bool = False,
                      propogate_loggers: List[str] = None,
                      enable_loggers: List[str] = None,
                      disable_loggers: List[str] = None,
-
                      **kwargs) -> int:
     """
     Configure logger via loguru.
@@ -68,9 +71,15 @@ def configure_logger(log_target = sys.stderr, log_level: str = "INFO",
         log_target: defaults to stderr, but can supply filename as well (default console/stderr)
         log_level : TRACE|DEBUG|INFO(dflt)|ERROR|CRITICAL (default INFO)
         log_format: format for output log line (loguru default)
-        brightness: console messages bright or dim (default True)
+        brightness: console messages bright or dim (default False)
         log_handle: handle of log being re-initialized. (default 0)
+        enqueue   : to avoid collisions on the log in muti-processing applications. 
+            See is_complete() and wait_for_complete().
+        propogate_loggers: list of (legacy) loggers to propogate this configuration to.
+        enable_loggers: list of loggers to enable messages from
+        disable_loggers: list of loggers to disable messages from
         other     : keyword args related to loguru logger.add() function
+            see: https://loguru.readthedocs.io/en/stable/api/logger.html#loguru._logger.Logger.add            
 
     Example::
 
@@ -88,37 +97,49 @@ def configure_logger(log_target = sys.stderr, log_level: str = "INFO",
     Returns:
         logger_handle_id: integer representing logger handle
     """
+    # Ideas from: https://medium.com/@muh.bazm/how-i-unified-logging-in-fastapi-with-uvicorn-and-loguru-6813058c48fc
     try:
-        # Remove specific handler
-        LOGGER.remove(log_handle)
-        # attempt to include all python loggers
-        # logging.basicConfig(handlers=[_InterceptHandler()], level=0, force=True)
+        if log_handle >= 0:
+            # Remove specific handler
+            LOGGER.remove(log_handle)
+            print(f'removed handler: {log_handle}')
+        # else:
+        #     print('remove existing handlers...')
+        #     # Remove existing handlers
+        #     for handler in logging.root.handlers[:]:
+        #         print(f'- removing {handler.name}')
+        #         logging.root.removeHandler(handler)
+            
         # Intercept standard logging
-        logging.basicConfig(handlers=[_InterceptHandler()], level=logging.INFO)    
-    except:  # noqa: E722
-        pass
-    # Remove existing handlers
-    # for handler in logging.root.handlers[:]:
-    #     logging.root.removeHandler(handler)
-
+        logging.basicConfig(handlers=[_InterceptHandler()], level=logging.DEBUG)    
+    except Exception as ex:
+        LOGGER.trace(f'configure_logger(): {ex}')
 
     if brightness is not None:
-        set_log_levels_brighness(brightness)
+        set_log_levels_brightness(brightness)
         
-    if not log_format:
-        # Set format based on type of logger (file vs console)
-        if isinstance(log_target, str):
-            log_format = DEFAULT_FILE_LOGFMT
-        else:
-            log_format = DEFAULT_CONSOLE_LOGFMT
+    if log_format is None:
+        # Set format based on type of logger (file vs console)        
+        log_format = DEFAULT_FILE_LOGFMT if isinstance(log_target, str) else DEFAULT_CONSOLE_LOGFMT
 
-    hndl = LOGGER.add(sink=log_target, level=log_level, format=log_format, backtrace=True, diagnose=True, **kwargs)
+    hndl = LOGGER.add(sink=log_target, 
+                      level=log_level, 
+                      format=log_format, 
+                      enqueue=enqueue,
+                      diagnose=True, 
+                      **kwargs)
+
     if propogate_loggers is not None:
         _propogate_loggers(propogate_loggers)
     if enable_loggers is not None:
         _enable_loggers(enable_loggers)
     if disable_loggers is not None:
         _disable_loggers(disable_loggers)
+
+    if not hasattr(LOGGER, 'is_complete'):
+        setattr(LOGGER, 'is_complete', is_complete)
+    if not hasattr(LOGGER, 'waitfor_complete'):
+        setattr(LOGGER, 'waitfor_complete', waitfor_complete)
 
     return hndl
 
@@ -155,6 +176,7 @@ class _InterceptHandler(logging.Handler):
 
 #         logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
         
+# =============================================================================================
 def _propogate_loggers(loggers: list[str]) -> bool:
     for lgr_name in loggers:
         logging_logger = logging.getLogger(lgr_name)
@@ -171,11 +193,15 @@ def _disable_loggers(loggers: list[str]) -> bool:
         LOGGER.disable(lgr)
     return True
 
+
+# =============================================================================================
 def _print_log_level_definitions():
     for lvl in ['TRACE','DEBUG','INFO','SUCCESS','WARNING','ERROR','CRITICAL']:
         LOGGER.log(lvl, LOGGER.level(lvl))
+    while not LOGGER.complete():
+        pass
 
-def set_log_levels_brighness(on: bool = True):
+def set_log_levels_brightness(on: bool = True):
     """
     Set brighness of console log messages
 
@@ -190,7 +216,26 @@ def set_log_levels_brighness(on: bool = True):
             color = color.replace('<bold>', '')
         LOGGER.level(lvl, color=color)
 
+def is_complete() -> bool:
+    """
+    Check if any log output is pending.
+
+    Returns:
+        bool: True if enqueue buffer is empty, else False (i.e. pending log lines)
+    """
+    return LOGGER.complete()
+
+def waitfor_complete():
+    """
+    If logger has enqueue set, wait for any pending log lines to 
+    be written before continuing.
+    """
+    while not LOGGER.complete():
+        time.sleep(.1)
+
+# =============================================================================================
 # == Logging Decorators =======================================================================
+# =============================================================================================
 def logger_wraps(*, entry=True, exit=True, level="DEBUG"):
     """
     function decorator wrapper to log entry and exit

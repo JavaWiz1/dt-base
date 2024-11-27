@@ -32,7 +32,7 @@ def demo():
     }
     l_handle = lh.configure_logger(log_level="INFO", brightness=False)
     LOGGER.info('='*80)
-    version = f'v{ProjectHelper.determine_version("dt-base")}'
+    version = f'v{ProjectHelper.determine_version("dt-foundation")}'
     LOGGER.info(f'dt_misc_demo {version}', 80)
     LOGGER.info('='*80)
     LOGGER.info('')

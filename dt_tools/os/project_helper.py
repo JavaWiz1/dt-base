@@ -1,3 +1,4 @@
+import tomllib
 import inspect
 import pathlib
 from datetime import datetime as dt
@@ -119,6 +120,12 @@ class ProjectHelper:
         return ver, determined_from
     
     @staticmethod
+    def _get_caller() -> pathlib.Path:
+        root_idx = len(inspect.stack()) - 1
+        caller = pathlib.Path(inspect.stack()[root_idx].filename)
+        return caller
+    
+    @staticmethod
     def determine_version(target_name: str, identify_src: bool = False) -> Union[str, Tuple[str, str]]:
         """
         Retrieve project version for distribution (or running codebase)
@@ -148,8 +155,9 @@ class ProjectHelper:
         
         LOGGER.trace(f'determine_version for {target_name}')
         ver = None
-        root_idx = len(inspect.stack()) - 1
-        caller = pathlib.Path(inspect.stack()[root_idx].filename)
+        # root_idx = len(inspect.stack()) - 1
+        # caller = pathlib.Path(inspect.stack()[root_idx].filename)
+        caller = ProjectHelper._get_caller()
         determined_from = None
         ver, determined_from = ProjectHelper._check_toml(target_name, caller)
         if ver is None:
@@ -168,7 +176,37 @@ class ProjectHelper:
         return ver
 
     @staticmethod
-    def installed_packages() -> dict:
+    def _pyproject_toml_location() -> pathlib.Path:
+        caller = ProjectHelper._get_caller()
+        target_file = ProjectHelper._search_down_tree("pyproject.toml", pathlib.Path(caller).parent)
+        if target_file is None:
+            LOGGER.trace(f'Unable to locate pyproject.toml for {caller}')
+        return target_file
+    
+    @staticmethod
+    def installed_pyproject_toml_packages() -> dict:
+        """
+        Return a dictionary describing pyproject.toml installed packages.
+
+        Returns:
+            dict: in format {"pkg_name1": "pkg_version", "pkg_name2": "pkg_version", ...}
+        """
+        toml_packages = {}
+        toml_file = ProjectHelper._pyproject_toml_location()
+        if toml_file is not None:
+            config = tomllib.loads(toml_file.read_text())
+            toml_deps = config.get('tool',{}).get('poetry', None)
+            if toml_deps is not None:
+                dist_deps = ProjectHelper.installed_distribution_packages()
+                for toml_pkg, val in toml_deps['dependencies'].items():
+                    dep_version = dist_deps.get(toml_pkg, None)
+                    if dep_version is not None:
+                        toml_packages[toml_pkg] = dep_version
+        return toml_packages
+    
+
+    @staticmethod
+    def installed_distribution_packages() -> dict:
         """
         Return a dictionary describing installed packages.
 
@@ -183,4 +221,6 @@ class ProjectHelper:
         return package_dict
     
 
-    
+if __name__ == '__main__':
+    print(ProjectHelper.installed_pyproject_toml_packages())
+    # print(ProjectHelper.installed_distribution_packages())

@@ -40,18 +40,21 @@ def demo():
     LOGGER.info('log to console demo...')
     LOGGER.info('')
 
-    lh.set_log_levels_brighness(True)
+    lh.set_log_levels_brightness(True)
     LOGGER.info('')
     LOGGER.info('Log Levels BRIGHTNESS enabled')
     LOGGER.info('-----------------------------')
     lh._print_log_level_definitions()
     time.sleep(5)
+    LOGGER.waitfor_complete()
 
-    lh.set_log_levels_brighness(False)
+    lh.set_log_levels_brightness(False)
     LOGGER.info('')
     LOGGER.info('Log Levels BRIGHTNESS disabled')
     LOGGER.info('------------------------------')
     lh._print_log_level_definitions()
+    LOGGER.waitfor_complete()
+
     input('\nPress Enter to continue... ')
 
     LOGGER.info('')
@@ -75,6 +78,8 @@ def demo():
     LOGGER.info(f'- The {test1_log} file will get DEBUG level and above.')
     LOGGER.info(f'- The {test2_log} file will get INFO level and above.')
     LOGGER.info(f'- The {test2_log} file is set to rotate every 10 seconds and have 5 total versions.')
+    LOGGER.waitfor_complete()
+
     time.sleep(3)
     LOGGER.info('')
     LOGGER.trace('This TRACE message should ONLY print on Console')
@@ -85,6 +90,7 @@ def demo():
         log_level = random.choice(['TRACE','DEBUG','INFO','WARNING','ERROR','CRITICAL'])
         LOGGER.log(log_level, f'message {i:2} {log_level}')
         time.sleep(.25)
+    LOGGER.waitfor_complete()
 
     print('Removing file handlers, resetting console to debug format.')
     LOGGER.remove(h_test1)
@@ -94,12 +100,18 @@ def demo():
     LOGGER.info('')
     LOGGER.info('decorator: logger_wraps()')
     demo_logger_wraps()
+    LOGGER.waitfor_complete()
+
     LOGGER.info('')
     LOGGER.info('decorator: timer_wraps()')
     demo_timer_wraps()
+    LOGGER.waitfor_complete()
+
     h_console = lh.configure_logger(log_level="INFO", log_handle=h_console, brightness=False)
     LOGGER.info('')
     LOGGER.success('logging demo complete.')
+    LOGGER.waitfor_complete()
+    
     input('\nPress Enter to continue... ')
     LOGGER.remove(h_console)
     

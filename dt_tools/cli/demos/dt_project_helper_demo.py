@@ -20,22 +20,35 @@ def demo():
 
     LOGGER.info('Determine versions')
     LOGGER.info('------------------')
-    LOGGER.info(f'- Distribution dt-base : {ProjectHelper.determine_version("dt-base", identify_src=True)}')
-    LOGGER.success('  ProjectHelper.determine_version("dt-base", identify_src=True)')
+    LOGGER.info(f'- Distribution dt-foundation : {ProjectHelper.determine_version("dt-foundation", identify_src=True)}')
+    LOGGER.success('  ProjectHelper.determine_version("dt-foundation", identify_src=True)')
     LOGGER.info('')
     LOGGER.info(f'- File: project_helper : {ProjectHelper.determine_version("project_helper", identify_src=True)}')
     LOGGER.success('  ProjectHelper.determine_version("project_helper", identify_src=True)')
     input('\nPress Enter to continue... ')
 
     LOGGER.info('')
-    LOGGER.info('Installed Packages')
-    LOGGER.info('------------------')
+    LOGGER.info('Installed Distribution Packages')
+    LOGGER.info('-------------------------------')
     LOGGER.info('')
-    LOGGER.success('  ProjectHelper.installed_packages().items()')
+    LOGGER.success('  ProjectHelper.installed_distribution_packages().items()')
     LOGGER.info('')
     LOGGER.info('  Package                        Version')
     LOGGER.info('  ------------------------------ ---------')
-    for package, ver in ProjectHelper.installed_packages().items():
+    for package, ver in ProjectHelper.installed_distribution_packages().items():
+        print(f'  {package:30} {ver}')
+
+    input('\nPress Enter to continue... ')
+
+    LOGGER.info('')
+    LOGGER.info('Installed pyproject.toml Packages')
+    LOGGER.info('---------------------------------')
+    LOGGER.info('')
+    LOGGER.success('  ProjectHelper.installed_pyproject_toml_packages().items()')
+    LOGGER.info('')
+    LOGGER.info('  Package                        Version')
+    LOGGER.info('  ------------------------------ ---------')
+    for package, ver in ProjectHelper.installed_pyproject_toml_packages().items():
         print(f'  {package:30} {ver}')
 
     LOGGER.info('')
