@@ -102,18 +102,12 @@ def configure_logger(log_target = sys.stderr,
         if log_handle >= 0:
             # Remove specific handler
             LOGGER.remove(log_handle)
-            LOGGER.trace(f'removed handler: {log_handle}')
-        # else:
-        #     print('remove existing handlers...')
-        #     # Remove existing handlers
-        #     for handler in logging.root.handlers[:]:
-        #         print(f'- removing {handler.name}')
-        #         logging.root.removeHandler(handler)
-            
-        # Intercept standard logging
-        logging.basicConfig(handlers=[_InterceptHandler()], level=logging.DEBUG)    
+            LOGGER.trace(f'removed handler: {log_handle}')            
     except Exception as ex:
-        LOGGER.trace(f'configure_logger(): {ex}')
+        LOGGER.error(f'configure_logger(): {ex}')
+
+    # Intercept standard logging
+    logging.basicConfig(handlers=[_InterceptHandler()], level=logging.DEBUG)    
 
     if brightness is not None:
         set_log_levels_brightness(brightness)
@@ -160,37 +154,29 @@ class _InterceptHandler(logging.Handler):
         LOGGER.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage()
         )
 
-# class _InterceptHandler(logging.Handler):
-#     def emit(self, record):
-#         # Get corresponding Loguru level if it exists.
-#         try:
-#             level = logger.level(record.levelname).name
-#         except ValueError:
-#             level = record.levelno
-
-#         # Find caller from where originated the logged message.
-#         frame, depth = sys._getframe(6), 6
-#         while frame and frame.f_code.co_filename == logging.__file__:
-#             frame = frame.f_back
-#             depth += 1
-
-#         logger.opt(depth=depth, exception=record.exc_info).log(level, record.getMessage())
         
 # =============================================================================================
 def _propogate_loggers(loggers: list[str]) -> bool:
-    for lgr_name in loggers:
+    for lgr_name in [x for x in loggers if x.strip() != '']:
         logging_logger = logging.getLogger(lgr_name)
         logging_logger.handlers = []
         logging_logger.propagate = True
-        
+        LOGGER.trace(f'- propogate set for {lgr_name}')
+
+    return True
+
 def _enable_loggers(loggers: list[str]) -> bool:
-    for lgr in loggers:
+    for lgr in [x for x in loggers if x.strip() != '']:
         LOGGER.enable(lgr)
+        LOGGER.trace(f'- logging enabled for {lgr}')
+
     return True
 
 def _disable_loggers(loggers: list[str]) -> bool:
-    for lgr in loggers:
+    for lgr in [x for x in loggers if x.strip() != '']:
         LOGGER.disable(lgr)
+        LOGGER.trace(f'- logging disabled for {lgr}')
+
     return True
 
 
