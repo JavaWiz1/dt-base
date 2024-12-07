@@ -76,15 +76,28 @@ class OSHelper():
         Returns:
             True if running in foreground else False
         """
-        try:
-            if os.getpgrp() == os.tcgetpgrp(sys.stdout.fileno()):
-                return True     # is foreground
-            return False        # is background
-        except AttributeError:
-            # Fall back, looks like os.getpgrp() is not available
-            return sys.stdout.isatty()
-        except OSError:
-            return True         # is as a daemon       
+        # try:
+        #     if os.getpgrp() == os.tcgetpgrp(sys.stdout.fileno()):
+        #         return True     # is foreground
+        #     return False        # is background
+        # except AttributeError:
+        #     # Fall back, looks like os.getpgrp() is not available
+        #     return sys.stdout.isatty()
+        # except OSError:
+        #     return True         # is as a daemon       
+        if OSHelper.is_linux():
+            current_process = psutil.Process()
+            return current_process.terminal() is not None
+        elif OSHelper.is_windows():
+            pid = os.getpid()
+            for svc in psutil.win_service_iter():
+                if svc.pid == pid and svc.status == 'running':
+                    return False
+            return True
+        # Not supported OS
+        LOGGER.warning('Unable to determine if process is background/foreground - Unsupported OS')
+        return False
+        
 
     @staticmethod
     def is_running_in_background():
@@ -509,26 +522,26 @@ class OSHelper():
 
 if __name__ == "__main__":
     import json
-    
-    print(json.dumps(OSHelper.sysinfo(include_cpu=False, include_disk=True, include_memory=False), indent=2))
-    info = OSHelper.sysinfo(include_disk=True)
-    info_obj = ohelper.dict_to_obj(info)
-    print(info_obj.disk)
-    print('Device       Type            Total      Used       Free    % Used')
-    print('------------ ---------- ---------- ---------- ---------- --------')
-    for de in info_obj.disk.partitions:
-        # print(de)
-        total = '-'
-        used = '-'
-        free = '-'
-        used_pct = '-'
-        type = de.fstype if len(de.fstype) > 0 else de.mount_opts
-        if hasattr(de, 'total'):
-            total = OSHelper.bytes_to_printformat(de.total)
-            used = OSHelper.bytes_to_printformat(de.used)
-            free = OSHelper.bytes_to_printformat(de.free)
-            used_pct = f'{de.used_pct}%'
-        print(f'{de.device:12} {type:10} {total:>10} {used:>10} {free:>10} {used_pct:>8}')
+    print(f'is foreground: {OSHelper.is_running_in_foreground()}')    
+    # print(json.dumps(OSHelper.sysinfo(include_cpu=False, include_disk=True, include_memory=False), indent=2))
+    # info = OSHelper.sysinfo(include_disk=True)
+    # info_obj = ohelper.dict_to_obj(info)
+    # print(info_obj.disk)
+    # print('Device       Type            Total      Used       Free    % Used')
+    # print('------------ ---------- ---------- ---------- ---------- --------')
+    # for de in info_obj.disk.partitions:
+    #     # print(de)
+    #     total = '-'
+    #     used = '-'
+    #     free = '-'
+    #     used_pct = '-'
+    #     type = de.fstype if len(de.fstype) > 0 else de.mount_opts
+    #     if hasattr(de, 'total'):
+    #         total = OSHelper.bytes_to_printformat(de.total)
+    #         used = OSHelper.bytes_to_printformat(de.used)
+    #         free = OSHelper.bytes_to_printformat(de.free)
+    #         used_pct = f'{de.used_pct}%'
+    #     print(f'{de.device:12} {type:10} {total:>10} {used:>10} {free:>10} {used_pct:>8}')
     # print(OSHelper.bytes_to_kb(num_bytes, 2))
     # print(OSHelper.bytes_to_mb(num_bytes, 3))
     # print(OSHelper.bytes_to_gb(num_bytes, 1))

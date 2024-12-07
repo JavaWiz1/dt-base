@@ -104,7 +104,8 @@ def configure_logger(log_target = sys.stderr,
             LOGGER.remove(log_handle)
             LOGGER.trace(f'removed handler: {log_handle}')            
     except Exception as ex:
-        LOGGER.error(f'configure_logger(): {ex}')
+        if 'There is no existing' not in str(ex):
+            LOGGER.error(f'configure_logger(): {ex}')
 
     # Intercept standard logging
     logging.basicConfig(handlers=[_InterceptHandler()], level=logging.DEBUG)    
