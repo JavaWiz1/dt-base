@@ -123,6 +123,8 @@ def configure_logger(log_target = sys.stderr,
                       enqueue=enqueue,
                       diagnose=True, 
                       **kwargs)
+    # NOTE: This adds a new variable to LOGGER so current log level can be determined.
+    LOGGER.log_level = log_level
 
     if propogate_loggers is not None:
         _propogate_loggers(propogate_loggers)
