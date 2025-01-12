@@ -12,9 +12,9 @@ To Run:
 """
 from loguru import logger as LOGGER
 
-import dt_tools.cli.demos.dt_misc_helper_demo as os_helper_demo
+import dt_tools.cli.demos.dt_misc_helper_demo as misc_helper_demo
 import dt_tools.cli.demos.dt_logging_demo as logging_demo
-import dt_tools.cli.demos.dt_os_demo as os_demo
+import dt_tools.cli.demos.dt_os_demo as os_helper_demo
 import dt_tools.cli.demos.dt_project_helper_demo as project_helper_demo
 import dt_tools.cli.demos.dt_sysinfo_demo as sysinfo_demo
 import dt_tools.logger.logging_helper as lh
@@ -25,9 +25,9 @@ def demo():
     OSHelper.enable_ctrl_c_handler()
     DEMOS = {
         "Logging demo": logging_demo,
-        "OS demo": os_demo,
+        "OS demo": os_helper_demo,
         "System Info": sysinfo_demo,
-        "OS Helper demo": os_helper_demo,
+        "Misc Helper demo": misc_helper_demo,
         "Project Helper demo": project_helper_demo,
     }
     l_handle = lh.configure_logger(log_level="INFO", brightness=False)

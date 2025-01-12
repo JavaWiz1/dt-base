@@ -20,7 +20,7 @@ from typing import List
 from loguru import logger as LOGGER
 
 import dt_tools.logger.logging_helper as lh
-from dt_tools.misc.helpers import ApiTokenHelper as api_helper
+from dt_tools.misc.api_helper import ApiTokenHelper as api_helper
 from dt_tools.misc.helpers import ObjectHelper as oh
 from dt_tools.os.project_helper import ProjectHelper
 
