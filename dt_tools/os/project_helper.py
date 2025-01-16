@@ -121,10 +121,15 @@ class ProjectHelper:
     
     @staticmethod
     def _get_caller() -> pathlib.Path:
-        root_idx = len(inspect.stack()) - 1
-        caller = pathlib.Path(inspect.stack()[root_idx].filename)
-        return caller
-    
+        callstack_len = len(inspect.stack())
+        LOGGER.trace(f'Call Stack ({callstack_len}):')
+        for idx in range(callstack_len):
+            LOGGER.trace(f'- {idx:2} {inspect.stack()[idx].filename}')
+
+        previous_frame = inspect.currentframe().f_back
+        caller = inspect.getframeinfo(previous_frame).filename
+        return caller 
+        
     @staticmethod
     def determine_version(target_name: str, identify_src: bool = False) -> Union[str, Tuple[str, str]]:
         """
@@ -158,6 +163,7 @@ class ProjectHelper:
         # root_idx = len(inspect.stack()) - 1
         # caller = pathlib.Path(inspect.stack()[root_idx].filename)
         caller = ProjectHelper._get_caller()
+        LOGGER.trace(f'- calling from {caller}')
         determined_from = None
         ver, determined_from = ProjectHelper._check_toml(target_name, caller)
         if ver is None:
