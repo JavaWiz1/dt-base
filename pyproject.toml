@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dt-foundation"
-version = "0.1.10"
+version = "0.1.17"
 description = "[DAmicoTech] Base modules (logging, os,..) for dt-* packages"
 authors = ["Al DAmico <JavaWiz1@hotmail.com>"]
 readme = "README.md"
@@ -19,8 +19,8 @@ include = ["CHANGELOG.md"]
 
 [tool.poetry.dependencies]
 python = "^3.10"
-loguru = "^0.7.2"
-psutil = "^6.0.0"
+loguru = "*"
+psutil = "*"
 
 [[tool.poetry.source]]
 name = "PyPI"
@@ -29,7 +29,7 @@ priority = "primary"
 [[tool.poetry.source]]
 name = "piwheels"
 url = "https://www.piwheels.org/simple"
-priority = "supplemental"
+priority = "primary"
 
 [tool.poetry.scripts]
 set-api-tokens = 'dt_tools.cli.set_api_tokens_cli:main'

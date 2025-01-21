@@ -51,6 +51,9 @@ DEFAULT_CONSOLE_LOGFMT = "<level>{message}</level>"
 DEFAULT_DEBUG_LOGFMT =  "<green>{time:HH:mm:ss}</green> |<level>{level: <8}</level>|<cyan>{module:20}</cyan>|<cyan>{line:4}</cyan>| <level>{message}</level>"
 """For console/file logging, timestamp \|level\|method name\|lineno\|message"""
 
+DEFAULT_DEBUG_LOGFMT2 =  "<green>{time:HH:mm:ss}</green> |<level>{level: <8}</level>|<cyan>{name:15}|{module:20}|{line:4}</cyan>| <level>{message}</level>"
+"""For console/file logging, timestamp \|level\|method name\|lineno\|message"""
+
 def configure_logger(log_target = sys.stderr, 
                      log_level: str = "INFO", 
                      log_format: str = None, 
@@ -123,6 +126,8 @@ def configure_logger(log_target = sys.stderr,
                       enqueue=enqueue,
                       diagnose=True, 
                       **kwargs)
+    # NOTE: This adds a new variable to LOGGER so current log level can be determined.
+    LOGGER.log_level = log_level
 
     if propogate_loggers is not None:
         _propogate_loggers(propogate_loggers)

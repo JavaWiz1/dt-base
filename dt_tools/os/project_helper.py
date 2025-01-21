@@ -30,7 +30,7 @@ class ProjectHelper:
         Returns:
             str: Full filename/path or None.
         """
-        LOGGER.trace(f'  Search for {filename}')
+        LOGGER.trace(f'  Search for {filename} starting at {start_path}')
         result_file: pathlib.Path = None
         cur_depth = 0
         traverse_path = pathlib.Path(start_path)
@@ -39,7 +39,7 @@ class ProjectHelper:
             cur_depth += 1
             file_list = list(traverse_path.glob(pattern))
             LOGGER.trace(f'  - directory: {str(traverse_path)}')
-            LOGGER.trace(f'    file_list: {file_list}')
+            # LOGGER.trace(f'    file_list: {file_list}')
             if len(file_list) == 1:
                 result_file = file_list[0]
                 LOGGER.trace(f'  FOUND: {result_file}')
@@ -63,9 +63,8 @@ class ProjectHelper:
 
     @staticmethod
     def _check_toml(project_name: str, calling_module: str) -> Tuple[str,str]:
-        LOGGER.trace('Try pyproject.toml')
+        LOGGER.trace(f'_check_toml() project: {project_name}  calling_module: {calling_module}')
         ver = None
-        LOGGER.trace(project_name)
         determined_from = None
         target_file = ProjectHelper._search_down_tree("pyproject.toml", pathlib.Path(calling_module).parent)
         # LOGGER.warning(target_file)
@@ -120,11 +119,28 @@ class ProjectHelper:
         return ver, determined_from
     
     @staticmethod
-    def _get_caller() -> pathlib.Path:
-        root_idx = len(inspect.stack()) - 1
-        caller = pathlib.Path(inspect.stack()[root_idx].filename)
-        return caller
-    
+    def _get_caller(from_caller: str) -> Tuple[pathlib.Path, int]:
+        callstack_len = len(inspect.stack())
+        LOGGER.trace(f'Who called [{from_caller}()]')
+        LOGGER.trace(f'Call Stack ({callstack_len}):')
+        from_caller_idx = -1
+        for idx in range(callstack_len):
+            element = inspect.stack()[idx]
+            LOGGER.trace(f'- {idx:2} func: {element.function}()') 
+            LOGGER.trace(f'     file: {inspect.stack()[idx].filename}:{element.lineno}')
+            if element.function == from_caller:
+                from_caller_idx = idx
+
+        caller: pathlib.Path = None        
+        lineno: int = None
+        # Get caller before from_caller
+        if from_caller_idx >= 0:
+            element = inspect.stack()[from_caller_idx+1]
+            caller = pathlib.Path(element.filename)
+            lineno = element.lineno
+
+        return caller, lineno 
+
     @staticmethod
     def determine_version(target_name: str, identify_src: bool = False) -> Union[str, Tuple[str, str]]:
         """
@@ -157,9 +173,12 @@ class ProjectHelper:
         ver = None
         # root_idx = len(inspect.stack()) - 1
         # caller = pathlib.Path(inspect.stack()[root_idx].filename)
-        caller = ProjectHelper._get_caller()
+        caller, lineno = ProjectHelper._get_caller('determine_version') # who called this routine
+        LOGGER.trace(f'- calling from {caller}:{lineno}')
+        ver = None
         determined_from = None
-        ver, determined_from = ProjectHelper._check_toml(target_name, caller)
+        if caller is not None:
+            ver, determined_from = ProjectHelper._check_toml(target_name, caller)
         if ver is None:
             ver, determined_from = ProjectHelper._check_metadata(target_name)
 
@@ -176,8 +195,9 @@ class ProjectHelper:
         return ver
 
     @staticmethod
-    def _pyproject_toml_location() -> pathlib.Path:
-        caller = ProjectHelper._get_caller()
+    def _pyproject_toml_location(from_caller: str) -> pathlib.Path:
+        caller, lineno = ProjectHelper._get_caller(from_caller)
+        LOGGER.trace(f'_pyproject_toml_location() called from {caller}:{lineno}')
         target_file = ProjectHelper._search_down_tree("pyproject.toml", pathlib.Path(caller).parent)
         if target_file is None:
             LOGGER.trace(f'Unable to locate pyproject.toml for {caller}')
@@ -192,7 +212,7 @@ class ProjectHelper:
             dict: in format {"pkg_name1": "pkg_version", "pkg_name2": "pkg_version", ...}
         """
         toml_packages = {}
-        toml_file = ProjectHelper._pyproject_toml_location()
+        toml_file = ProjectHelper._pyproject_toml_location('installed_pyproject_toml_packages')
         if toml_file is not None:
             config = tomllib.loads(toml_file.read_text())
             toml_deps = config.get('tool',{}).get('poetry', None)
@@ -222,5 +242,8 @@ class ProjectHelper:
     
 
 if __name__ == '__main__':
-    print(ProjectHelper.installed_pyproject_toml_packages())
+    import dt_tools.logger.logging_helper as lh
+    lh.configure_logger(log_level="TRACE", log_format=lh.DEFAULT_DEBUG_LOGFMT2)
+    LOGGER.info(ProjectHelper.determine_version('dt-foundation'))
+    LOGGER.info(ProjectHelper.installed_pyproject_toml_packages())
     # print(ProjectHelper.installed_distribution_packages())
