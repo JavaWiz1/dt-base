@@ -522,17 +522,20 @@ class OSHelper():
                 os._exit(1)
 
     @staticmethod
-    def run_command(command: str) -> Tuple[int, List[str]]:
+    def run_command(exe: str, args: List[str]= None) -> Tuple[int, List[str]]:
         """
-        Run command, return rc, output_string_list
+        Run exe, return rc, output_string_list
         """
-        cmd_list = command.split()
-        LOGGER.debug(f'run: {cmd_list}')
-        process_rslt = subprocess.run(cmd_list,stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        LOGGER.trace(f'run: {exe} {"" if args is None else args}')
+        if args is None:
+            args = exe.split()
+            process_rslt = subprocess.run(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        else:
+            process_rslt = subprocess.run(executable=exe, args=args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         console_output = process_rslt.stdout.decode('utf-8').splitlines()
-        LOGGER.debug(f'returns: {process_rslt.returncode}')
+        LOGGER.trace(f'returns: {process_rslt.returncode}')
         for line in console_output:
-            LOGGER.debug(f'  {line}')
+            LOGGER.trace(f'  {line}')
         return process_rslt.returncode, console_output
     
 if __name__ == "__main__":
@@ -540,6 +543,7 @@ if __name__ == "__main__":
     print(f'is foreground: {OSHelper.is_running_in_foreground()}')    
     OSHelper.run_command('grep -r subprocess *')
     OSHelper.run_command('ls -l')
+    OSHelper.run_command("C:/Program Files (x86)/VideoLAN/VLC/vlc.exe", ['-v', '--intf', 'dummy', '--rate', '1.0', '--play-and-exit', './da_sound.mp3'])
     # print(json.dumps(OSHelper.sysinfo(include_cpu=False, include_disk=True, include_memory=False), indent=2))
     # info = OSHelper.sysinfo(include_disk=True)
     # info_obj = ohelper.dict_to_obj(info)
