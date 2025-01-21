@@ -9,10 +9,11 @@ import os
 import pathlib
 import platform
 import signal
+import subprocess
 import sys
+import tempfile
 from datetime import datetime as dt
 from typing import List, Tuple
-import tempfile
 
 import psutil
 from loguru import logger as LOGGER
@@ -520,9 +521,25 @@ class OSHelper():
             if resp == 'e':
                 os._exit(1)
 
+    @staticmethod
+    def run_command(command: str) -> Tuple[int, List[str]]:
+        """
+        Run command, return rc, output_string_list
+        """
+        cmd_list = command.split()
+        LOGGER.debug(f'run: {cmd_list}')
+        process_rslt = subprocess.run(cmd_list,stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        console_output = process_rslt.stdout.decode('utf-8').splitlines()
+        LOGGER.debug(f'returns: {process_rslt.returncode}')
+        for line in console_output:
+            LOGGER.debug(f'  {line}')
+        return process_rslt.returncode, console_output
+    
 if __name__ == "__main__":
     import json
     print(f'is foreground: {OSHelper.is_running_in_foreground()}')    
+    OSHelper.run_command('grep -r subprocess *')
+    OSHelper.run_command('ls -l')
     # print(json.dumps(OSHelper.sysinfo(include_cpu=False, include_disk=True, include_memory=False), indent=2))
     # info = OSHelper.sysinfo(include_disk=True)
     # info_obj = ohelper.dict_to_obj(info)
